@@ -22,10 +22,13 @@ This changelog follows the Keep a Changelog format.
 - A repo smoke-run script via `npm run smoke:memory-status`.
 - Initial SQLite store initialization and migration mechanism in the local core, including schema v1 for `memories`, `links`, `sessions`, and `artifacts`.
 - Core integration tests covering fresh database creation and idempotent re-initialization via `npm test`.
+- A first `memory_save` implementation in the local core with validation, normalization, low-information rejection, and persisted readback.
+- Pi extension registration for the `memory_save` tool.
+- Core tests covering valid create, invalid create, and persisted readback.
 
 ### Changed
 - Expanded the root `README.md` from a placeholder to a navigable project guide.
-- Updated `README.md` with the current extension/core structure, test entry points, and v0.2 implementation status.
+- Updated `README.md` with the current extension/core structure, test entry points, and v0.3 implementation status.
 
 ### Fixed
 - None.

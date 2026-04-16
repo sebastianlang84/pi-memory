@@ -31,7 +31,7 @@ Navigation: `AGENTS.md` (rules and routing), `MEMORY.md` (current state), `TODO.
 - `CHANGELOG.md` - user/operator-visible changes.
 - `package.json` - repo scripts, including the current extension smoke run.
 - `.pi/extensions/pi-memory/index.ts` - project-local Pi extension entry point.
-- `src/core/` - thin local core boundary, including SQLite store initialization and migrations.
+- `src/core/` - thin local core boundary, including SQLite store initialization, validated memory persistence, and migrations.
 - `src/pi-extension/` - Pi-facing extension layer.
 - `test/core/` - core integration tests.
 - `docs/` - PRD, ADRs, plans, runbooks, policies, audits, and archive material.
@@ -45,7 +45,7 @@ Navigation: `AGENTS.md` (rules and routing), `MEMORY.md` (current state), `TODO.
 5. Add ADRs, plans, or implementation docs under `docs/` as decisions harden.
 
 ## Current dev checks
-- Run `npm test` to verify fresh-DB initialization and the first migration path.
+- Run `npm test` to verify fresh-DB initialization, validated memory creation, and persisted readback.
 - Run `npm run smoke:memory-status` to load the extension and invoke `/memory-status` in print mode.
 
 ## Status
@@ -53,7 +53,8 @@ Navigation: `AGENTS.md` (rules and routing), `MEMORY.md` (current state), `TODO.
 - Product direction documented.
 - v0.1 extension/core skeleton implemented.
 - v0.2 SQLite store initialization and schema v1 migration are implemented.
-- Retrieval and memory persistence are not implemented yet.
+- v0.3 validated `memory_save` persistence is implemented in the local core and exposed through the Pi extension.
+- Retrieval is not implemented yet.
 
 ## License
 See `LICENSE`.

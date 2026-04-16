@@ -14,12 +14,6 @@ Rule: Completed items are removed, not checked off.
 
 Each step should land as a small, reviewable, testable commit. `v1.0` is explicitly feature-free: only final review, fixes, cleanup, and release closeout.
 
-### v0.3
-- Implement `memory_save` against the local core interface.
-- Add input validation and normalization for required fields.
-- Reject low-information writes in the first minimal form.
-- Add tests for valid create, invalid create, and persisted readback.
-
 ### v0.4
 - Implement lexical retrieval first: metadata filters + FTS5 search.
 - Expose `memory_search` with compact results.
