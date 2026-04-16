@@ -7,6 +7,7 @@ export function formatMemoryStatus(status: MemoryCoreStatus, cwd: string): strin
     `cwd: ${cwd}`,
     `core_mode: ${status.mode}`,
     `storage: ${status.storage}`,
+    `latest_schema_version: ${status.latestSchemaVersion}`,
     `commands: ${status.availableCommands.join(", ") || "none"}`,
     `tools: ${status.availableTools.join(", ") || "none"}`,
     `next_step: ${status.nextStep}`,

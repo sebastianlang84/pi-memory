@@ -20,10 +20,12 @@ This changelog follows the Keep a Changelog format.
 - Working V1 Pi extension plan under `docs/plans/pi-extension-v1.md`, covering the proposed tools, commands, hooks, and write policy.
 - A v0.1 project-local Pi extension skeleton with a thin local core boundary and a `/memory-status` command stub.
 - A repo smoke-run script via `npm run smoke:memory-status`.
+- Initial SQLite store initialization and migration mechanism in the local core, including schema v1 for `memories`, `links`, `sessions`, and `artifacts`.
+- Core integration tests covering fresh database creation and idempotent re-initialization via `npm test`.
 
 ### Changed
 - Expanded the root `README.md` from a placeholder to a navigable project guide.
-- Updated `README.md` with the current extension/core structure and the v0.1 smoke-test entry point.
+- Updated `README.md` with the current extension/core structure, test entry points, and v0.2 implementation status.
 
 ### Fixed
 - None.

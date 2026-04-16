@@ -15,8 +15,9 @@ scope: always-loaded bootstrap; keep lean
 - Root living docs and `docs/` baseline were aligned to the `~/agentic-coding` governance structure.
 - Product direction for V1 is documented in `docs/prd-lightweight-local-memory-system.md`.
 - A working Pi integration plan now exists in `docs/plans/pi-extension-v1.md`.
-- A v0.1 project-local Pi extension skeleton now exists under `.pi/extensions/pi-memory/`, backed by a thin local core stub under `src/core/` and Pi-facing modules under `src/pi-extension/`.
-- A smoke path exists via `npm run smoke:memory-status`, which loads the extension and runs `/memory-status` in print mode.
+- A v0.1 project-local Pi extension skeleton now exists under `.pi/extensions/pi-memory/`, backed by a thin local core under `src/core/` and Pi-facing modules under `src/pi-extension/`.
+- The local core now supports SQLite store initialization, schema migrations via `PRAGMA user_version`, and schema v1 for `memories`, `links`, `sessions`, and `artifacts`.
+- Verification paths now exist via `npm test` for fresh DB + migration checks and `npm run smoke:memory-status` for the extension smoke run.
 - Current V1 direction from the PRD and plan: local-first, single-user, SQLite-based, hybrid retrieval, Pi-first extension surface, thin local core boundary, no heavy server infrastructure.
 
 ## 2) Long-Term Memory
@@ -29,6 +30,7 @@ scope: always-loaded bootstrap; keep lean
 - 2026-04-16 — Bootstrapped repo living-doc structure and added the initial PRD under `docs/`.
 - 2026-04-16 — Added `docs/plans/pi-extension-v1.md` with the proposed V1 extension tools, commands, hooks, and write-policy shape.
 - 2026-04-16 — Implemented the v0.1 Pi extension/core bootstrap skeleton with a working `/memory-status` smoke path.
+- 2026-04-16 — Implemented v0.2 SQLite store initialization, schema v1 migrations, and core integration tests.
 
 ## 4) Open Decisions
 - Whether V1 should ship as a pure local library or as a small localhost service.
@@ -36,13 +38,14 @@ scope: always-loaded bootstrap; keep lean
 - How much memory creation should be manual vs assisted in V1.
 
 ## 5) Next Steps
-1. Implement v0.2: SQLite store initialization and first migrations.
-2. Define the concrete SQL schema details for memories, links, sessions, and artifacts.
+1. Implement v0.3: `memory_save` with validation and persisted readback.
+2. Refine the schema details as needed while save/update flows become concrete.
 3. Specify hybrid retrieval and ranking behavior.
 4. Define write policy and Pi integration boundary.
 5. Keep the runtime-boundary decision explicit as an ADR if later evidence pushes beyond the current in-process extension plan.
 
 ## 6) Known Risks / Blockers
 - `sqlite-vec` maturity risk.
+- `node:sqlite` is currently experimental in this Node runtime.
 - Local embedding latency on weaker machines.
 - Memory quality can degrade quickly if write policy is too permissive.

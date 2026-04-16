@@ -8,7 +8,7 @@ export default function registerPiMemoryExtension(pi: ExtensionAPI) {
 
   pi.on("session_start", async (_event, ctx) => {
     if (!ctx.hasUI) return;
-    ctx.ui.setStatus("pi-memory", "pi-memory v0.1 ready — /memory-status");
+    ctx.ui.setStatus("pi-memory", "pi-memory v0.2 ready — /memory-status");
   });
 
   pi.registerCommand("memory-status", {

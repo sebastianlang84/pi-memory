@@ -14,12 +14,6 @@ Rule: Completed items are removed, not checked off.
 
 Each step should land as a small, reviewable, testable commit. `v1.0` is explicitly feature-free: only final review, fixes, cleanup, and release closeout.
 
-### v0.2
-- Implement SQLite store initialization.
-- Add the first migration mechanism.
-- Create the initial schema for `memories`, `links`, `sessions`, and `artifacts` without retrieval logic yet.
-- Add a migration/integration test that creates a fresh DB successfully.
-
 ### v0.3
 - Implement `memory_save` against the local core interface.
 - Add input validation and normalization for required fields.
