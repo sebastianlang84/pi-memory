@@ -85,6 +85,10 @@ export interface MemorySearchResult {
   createdAt: string;
   updatedAt: string;
   matchScore: number;
+  lexicalScore: number;
+  semanticScore: number;
+  scopeScore: number;
+  recencyScore: number;
 }
 
 export class MemoryValidationError extends Error {

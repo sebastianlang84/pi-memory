@@ -22,7 +22,7 @@ export default function registerPiMemoryExtension(pi: ExtensionAPI) {
 
   pi.on("session_start", async (_event, ctx) => {
     if (!ctx.hasUI) return;
-    ctx.ui.setStatus("pi-memory", "pi-memory v0.5 ready — /memory-status, memory_search, memory_save");
+    ctx.ui.setStatus("pi-memory", "pi-memory v0.6 ready — /memory-status, memory_search, memory_save");
   });
 
   pi.on("session_shutdown", async () => {
@@ -33,7 +33,7 @@ export default function registerPiMemoryExtension(pi: ExtensionAPI) {
   pi.registerTool({
     name: "memory_search",
     label: "Memory Search",
-    description: "Search the local pi-memory store using lexical retrieval and compact filters.",
+    description: "Search the local pi-memory store using hybrid lexical + semantic retrieval and compact filters.",
     promptSnippet: "Search local durable memory before guessing when prior decisions, facts, or todos may matter.",
     promptGuidelines: [
       "Keep queries compact and concrete.",
@@ -170,6 +170,14 @@ function formatMemorySearchResultLine(index: number, result: MemorySearchResult)
   }
 
   metadata.push(`score=${result.matchScore.toFixed(3)}`);
+
+  if (result.lexicalScore > 0) {
+    metadata.push(`lex=${result.lexicalScore.toFixed(3)}`);
+  }
+
+  if (result.semanticScore > 0) {
+    metadata.push(`sem=${result.semanticScore.toFixed(3)}`);
+  }
 
   return `${index}. [${metadata.join(" | ")}] ${result.title} — ${result.summary}`;
 }

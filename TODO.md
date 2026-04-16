@@ -14,12 +14,6 @@ Rule: Completed items are removed, not checked off.
 
 Each step should land as a small, reviewable, testable commit. `v1.0` is explicitly feature-free: only final review, fixes, cleanup, and release closeout.
 
-### v0.6
-- Implement hybrid retrieval: FTS + vector search + application-layer ranking.
-- Add first-pass ranking inputs such as scope match, recency, importance, and confidence.
-- Add basic dedupe behavior for near-identical results.
-- Add ranking-focused retrieval tests for mixed DE/EN queries.
-
 ### v0.7
 - Implement the Pi retrieval hook for `before_agent_start`.
 - Map current session/repo/project context into search filters.

@@ -20,8 +20,10 @@ scope: always-loaded bootstrap; keep lean
 - v0.3 implemented validated memory creation: the core normalizes and persists memory records with immediate readback, and the Pi extension registers a `memory_save` tool.
 - v0.4 is now implemented for lexical retrieval: the core supports metadata-filtered FTS5 search with compact result shaping, and the Pi extension now registers a `memory_search` tool.
 - v0.5 now adds embedding generation/storage behind a narrow adapter: schema v3 persists embeddings in `memory_embeddings`, the store supports injected adapters, and the built-in deterministic profiles are `builtin-hash-384-v1` (default) and `builtin-hash-64-v1` (low-footprint fallback).
+- v0.6 now implements hybrid retrieval in the local core: lexical FTS candidates and vector candidates are merged and reranked in application code using lexical/semantic match, scope/context, recency, importance, and confidence.
+- v0.6 also adds basic near-duplicate suppression for search results and ranking-focused hybrid retrieval tests, including mixed German/English semantic cases via a mock embedding adapter.
 - ADR 001 records the v0.5 embedding baseline decision.
-- Verification paths now exist via `npm test` for fresh DB, migration, save-validation, persisted-readback, lexical retrieval, and embedding persistence checks, plus `npm run smoke:memory-status` for the extension smoke run.
+- Verification paths now exist via `npm test` for fresh DB, migration, save-validation, persisted-readback, lexical retrieval, hybrid retrieval/ranking, and embedding persistence checks, plus `npm run smoke:memory-status` for the extension smoke run.
 - Current V1 direction from the PRD and plan: local-first, single-user, SQLite-based, hybrid retrieval, Pi-first extension surface, thin local core boundary, no heavy server infrastructure.
 
 ## 2) Long-Term Memory
@@ -38,13 +40,14 @@ scope: always-loaded bootstrap; keep lean
 - 2026-04-16 — Implemented v0.3 validated `memory_save` persistence with normalized writes, low-information rejection, persisted readback, and Pi tool registration.
 - 2026-04-16 — Implemented v0.4 lexical retrieval with schema v2 FTS5 indexing, metadata filters, compact `memory_search` results, and retrieval-focused tests.
 - 2026-04-16 — Implemented v0.5 embedding generation/storage with schema v3, a narrow adapter boundary, deterministic built-in default/fallback profiles, and adapter-focused tests.
+- 2026-04-16 — Implemented v0.6 hybrid retrieval with lexical/vector candidate merging, application-layer ranking inputs, basic dedupe, Pi result formatting updates, and multilingual ranking-focused tests.
 
 ## 4) Open Decisions
 - Whether V1 should ship as a pure local library or as a small localhost service.
 - How much memory creation should be manual vs assisted in V1.
 
 ## 5) Next Steps
-1. Implement v0.6: hybrid retrieval with vector search plus application-layer ranking.
+1. Implement v0.7: the Pi `before_agent_start` retrieval hook with context-derived filters and compact turn injection.
 2. Refine the schema details as needed while retrieval and update flows become concrete.
 3. Define write policy and Pi integration boundary further as more tools land.
 4. Keep the runtime-boundary decision explicit as an ADR if later evidence pushes beyond the current in-process extension plan.
