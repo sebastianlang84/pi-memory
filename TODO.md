@@ -14,11 +14,6 @@ Rule: Completed items are removed, not checked off.
 
 Each step should land as a small, reviewable, testable commit. `v1.0` is explicitly feature-free: only final review, fixes, cleanup, and release closeout.
 
-### v0.4
-- Implement lexical retrieval first: metadata filters + FTS5 search.
-- Expose `memory_search` with compact results.
-- Add tests for exact-term retrieval, kind/scope filtering, and result limits.
-
 ### v0.5
 - Add embedding generation behind a narrow adapter.
 - Store embeddings for saved memories.

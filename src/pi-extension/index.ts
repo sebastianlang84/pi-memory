@@ -9,6 +9,7 @@ import {
   MEMORY_KINDS,
   MEMORY_SCOPES,
   type MemoryRecord,
+  type MemorySearchResult,
   type MemoryStore,
 } from "../core/index.ts";
 import { formatMemoryStatus, formatStatusWidgetLines } from "./status.ts";
@@ -21,12 +22,47 @@ export default function registerPiMemoryExtension(pi: ExtensionAPI) {
 
   pi.on("session_start", async (_event, ctx) => {
     if (!ctx.hasUI) return;
-    ctx.ui.setStatus("pi-memory", "pi-memory v0.3 ready — /memory-status, memory_save");
+    ctx.ui.setStatus("pi-memory", "pi-memory v0.4 ready — /memory-status, memory_search, memory_save");
   });
 
   pi.on("session_shutdown", async () => {
     store?.close();
     store = undefined;
+  });
+
+  pi.registerTool({
+    name: "memory_search",
+    label: "Memory Search",
+    description: "Search the local pi-memory store using lexical retrieval and compact filters.",
+    promptSnippet: "Search local durable memory before guessing when prior decisions, facts, or todos may matter.",
+    promptGuidelines: [
+      "Keep queries compact and concrete.",
+      "Use filters to narrow the result set when kind, scope, project, repo, or tags are known.",
+      "Prefer small limits to protect context quality.",
+    ],
+    parameters: Type.Object({
+      query: Type.String({ description: "Search query" }),
+      kind: Type.Optional(Type.Array(StringEnum(MEMORY_KINDS, { description: "Memory kind" }))),
+      scope: Type.Optional(Type.Array(StringEnum(MEMORY_SCOPES, { description: "Memory scope" }))),
+      tags: Type.Optional(Type.Array(Type.String({ description: "Tag" }))),
+      projectId: Type.Optional(Type.String({ description: "Optional project identifier filter" })),
+      repoPath: Type.Optional(Type.String({ description: "Optional repository path filter" })),
+      limit: Type.Optional(Type.Number({ minimum: 1, maximum: 20, description: "Max result count" })),
+    }),
+    async execute(_toolCallId, params, _signal, _onUpdate, ctx) {
+      const activeStore = getStoreForCwd(core, store, ctx.cwd);
+      store = activeStore;
+
+      const results = activeStore.searchMemories(params);
+
+      return {
+        content: [{ type: "text", text: formatMemorySearchResults(params.query, results, activeStore.dbPath) }],
+        details: {
+          dbPath: activeStore.dbPath,
+          results,
+        },
+      };
+    },
   });
 
   pi.registerTool({
@@ -110,4 +146,28 @@ function formatMemorySaved(memory: MemoryRecord, dbPath: string): string {
     `tags: ${memory.tags.join(", ") || "none"}`,
     `db_path: ${dbPath}`,
   ].join("\n");
+}
+
+function formatMemorySearchResults(query: string, results: MemorySearchResult[], dbPath: string): string {
+  if (results.length === 0) {
+    return [`No memories matched \"${query}\".`, `db_path: ${dbPath}`].join("\n");
+  }
+
+  return [
+    `Found ${results.length} memory result${results.length === 1 ? "" : "s"} for \"${query}\".`,
+    ...results.map((result, index) => formatMemorySearchResultLine(index + 1, result)),
+    `db_path: ${dbPath}`,
+  ].join("\n");
+}
+
+function formatMemorySearchResultLine(index: number, result: MemorySearchResult): string {
+  const metadata: string[] = [`${result.kind}/${result.scope}`];
+
+  if (result.tags.length > 0) {
+    metadata.push(`tags=${result.tags.join(",")}`);
+  }
+
+  metadata.push(`score=${result.matchScore.toFixed(3)}`);
+
+  return `${index}. [${metadata.join(" | ")}] ${result.title} — ${result.summary}`;
 }

@@ -76,6 +76,40 @@ export const memoryMigrations: MemoryMigration[] = [
       CREATE INDEX idx_artifacts_external_id ON artifacts(external_id);
     `,
   },
+  {
+    version: 2,
+    name: "memory_fts5_index",
+    sql: `
+      CREATE VIRTUAL TABLE memory_fts USING fts5(
+        title,
+        summary,
+        body,
+        tags,
+        tokenize='unicode61 remove_diacritics 2'
+      );
+
+      INSERT INTO memory_fts(rowid, title, summary, body, tags)
+      SELECT rowid, title, summary, coalesce(body, ''), coalesce(tags_json, '[]')
+      FROM memories;
+
+      CREATE TRIGGER memories_ai AFTER INSERT ON memories BEGIN
+        INSERT INTO memory_fts(rowid, title, summary, body, tags)
+        VALUES (new.rowid, new.title, new.summary, coalesce(new.body, ''), coalesce(new.tags_json, '[]'));
+      END;
+
+      CREATE TRIGGER memories_ad AFTER DELETE ON memories BEGIN
+        INSERT INTO memory_fts(memory_fts, rowid, title, summary, body, tags)
+        VALUES ('delete', old.rowid, old.title, old.summary, coalesce(old.body, ''), coalesce(old.tags_json, '[]'));
+      END;
+
+      CREATE TRIGGER memories_au AFTER UPDATE ON memories BEGIN
+        INSERT INTO memory_fts(memory_fts, rowid, title, summary, body, tags)
+        VALUES ('delete', old.rowid, old.title, old.summary, coalesce(old.body, ''), coalesce(old.tags_json, '[]'));
+        INSERT INTO memory_fts(rowid, title, summary, body, tags)
+        VALUES (new.rowid, new.title, new.summary, coalesce(new.body, ''), coalesce(new.tags_json, '[]'));
+      END;
+    `,
+  },
 ];
 
 export const LATEST_MEMORY_SCHEMA_VERSION = memoryMigrations.at(-1)?.version ?? 0;

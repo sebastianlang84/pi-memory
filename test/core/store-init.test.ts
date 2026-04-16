@@ -7,7 +7,7 @@ import { DatabaseSync } from "node:sqlite";
 
 import { initializeMemoryStore } from "../../src/core/index.ts";
 
-test("initializeMemoryStore creates a fresh database and applies schema v1", () => {
+test("initializeMemoryStore creates a fresh database and applies schema v2", () => {
   const tempRoot = mkdtempSync(join(tmpdir(), "pi-memory-store-"));
   const dbPath = join(tempRoot, "memory.sqlite");
 
@@ -16,24 +16,40 @@ test("initializeMemoryStore creates a fresh database and applies schema v1", () 
 
   assert.equal(existsSync(dbPath), true);
   assert.equal(store.dbPath, dbPath);
-  assert.equal(store.schemaVersion, 1);
-  assert.equal(store.latestSchemaVersion, 1);
+  assert.equal(store.schemaVersion, 2);
+  assert.equal(store.latestSchemaVersion, 2);
 
   const db = new DatabaseSync(dbPath);
 
   try {
     const schemaVersion = db.prepare("PRAGMA user_version;").get() as { user_version: number };
-    assert.equal(schemaVersion.user_version, 1);
+    assert.equal(schemaVersion.user_version, 2);
 
-    const tables = db
+    const coreTables = db
       .prepare(
-        `SELECT name FROM sqlite_master WHERE type = 'table' AND name NOT LIKE 'sqlite_%' ORDER BY name;`,
+        `SELECT name FROM sqlite_master WHERE type = 'table' AND name IN ('artifacts', 'links', 'memories', 'sessions') ORDER BY name;`,
       )
       .all() as Array<{ name: string }>;
 
     assert.deepEqual(
-      tables.map((table) => table.name),
+      coreTables.map((table) => table.name),
       ["artifacts", "links", "memories", "sessions"],
+    );
+
+    const ftsTable = db
+      .prepare(`SELECT name, sql FROM sqlite_master WHERE type = 'table' AND name = 'memory_fts';`)
+      .get() as { name: string; sql: string } | undefined;
+
+    assert.equal(ftsTable?.name, "memory_fts");
+    assert.match(ftsTable?.sql ?? "", /fts5/i);
+
+    const triggers = db
+      .prepare(`SELECT name FROM sqlite_master WHERE type = 'trigger' AND name LIKE 'memories_a%' ORDER BY name;`)
+      .all() as Array<{ name: string }>;
+
+    assert.deepEqual(
+      triggers.map((trigger) => trigger.name),
+      ["memories_ad", "memories_ai", "memories_au"],
     );
 
     const memoryColumns = db.prepare("PRAGMA table_info(memories);").all() as Array<{ name: string }>;
@@ -78,8 +94,8 @@ test("initializeMemoryStore is idempotent for an already-migrated database", () 
   const secondStore = initializeMemoryStore({ dbPath });
 
   try {
-    assert.equal(secondStore.schemaVersion, 1);
-    assert.equal(secondStore.latestSchemaVersion, 1);
+    assert.equal(secondStore.schemaVersion, 2);
+    assert.equal(secondStore.latestSchemaVersion, 2);
   } finally {
     secondStore.close();
   }

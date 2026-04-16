@@ -26,6 +26,27 @@ export interface CreateMemoryInput {
   metadata?: Record<string, unknown>;
 }
 
+export interface SearchMemoriesInput {
+  query: string;
+  kind?: MemoryKind[];
+  scope?: MemoryScope[];
+  tags?: string[];
+  projectId?: string;
+  repoPath?: string;
+  limit?: number;
+}
+
+export interface NormalizedSearchMemoriesInput {
+  query: string;
+  matchQuery: string;
+  kind?: MemoryKind[];
+  scope?: MemoryScope[];
+  tags: string[];
+  projectId?: string;
+  repoPath?: string;
+  limit: number;
+}
+
 export interface MemoryRecord {
   id: string;
   kind: MemoryKind;
@@ -48,6 +69,22 @@ export interface MemoryRecord {
   lastAccessedAt?: string;
   expiresAt?: string;
   metadata: Record<string, unknown>;
+}
+
+export interface MemorySearchResult {
+  id: string;
+  kind: MemoryKind;
+  scope: MemoryScope;
+  title: string;
+  summary: string;
+  tags: string[];
+  projectId?: string;
+  repoPath?: string;
+  importance: number;
+  confidence: number;
+  createdAt: string;
+  updatedAt: string;
+  matchScore: number;
 }
 
 export class MemoryValidationError extends Error {
@@ -114,6 +151,34 @@ export function normalizeCreateMemoryInput(input: CreateMemoryInput): MemoryReco
   };
 }
 
+export function normalizeSearchMemoriesInput(input: SearchMemoriesInput): NormalizedSearchMemoriesInput {
+  const issues: string[] = [];
+
+  const query = normalizeRequiredText("query", input.query, issues, 2);
+  const kind = normalizeEnumList("kind", input.kind, MEMORY_KINDS, issues);
+  const scope = normalizeEnumList("scope", input.scope, MEMORY_SCOPES, issues);
+  const tags = normalizeTags(input.tags, issues);
+  const projectId = normalizeOptionalText(input.projectId);
+  const repoPath = normalizeOptionalText(input.repoPath);
+  const limit = normalizeLimit(input.limit, issues);
+  const matchQuery = query ? buildFtsMatchQuery(query, issues) : undefined;
+
+  if (issues.length > 0 || !query || !matchQuery) {
+    throw new MemoryValidationError(issues);
+  }
+
+  return {
+    query,
+    matchQuery,
+    kind,
+    scope,
+    tags,
+    projectId,
+    repoPath,
+    limit,
+  };
+}
+
 function normalizeEnum<T extends string>(
   fieldName: string,
   value: string,
@@ -126,6 +191,38 @@ function normalizeEnum<T extends string>(
   }
 
   return value as T;
+}
+
+function normalizeEnumList<T extends string>(
+  fieldName: string,
+  values: readonly T[] | undefined,
+  allowedValues: readonly T[],
+  issues: string[],
+): T[] | undefined {
+  if (values === undefined) return undefined;
+
+  if (!Array.isArray(values)) {
+    issues.push(`${fieldName} must be an array`);
+    return undefined;
+  }
+
+  const normalizedValues: T[] = [];
+  const seen = new Set<T>();
+
+  for (const value of values) {
+    if (typeof value !== "string" || !allowedValues.includes(value as T)) {
+      issues.push(`${fieldName} entries must be one of: ${allowedValues.join(", ")}`);
+      continue;
+    }
+
+    const normalizedValue = value as T;
+    if (seen.has(normalizedValue)) continue;
+
+    seen.add(normalizedValue);
+    normalizedValues.push(normalizedValue);
+  }
+
+  return normalizedValues.length > 0 ? normalizedValues : undefined;
 }
 
 function normalizeRequiredText(
@@ -182,6 +279,17 @@ function normalizeScore(fieldName: string, value: number | undefined, issues: st
   return value;
 }
 
+function normalizeLimit(value: number | undefined, issues: string[]): number {
+  if (value === undefined) return 5;
+
+  if (!Number.isInteger(value) || value < 1 || value > 20) {
+    issues.push("limit must be an integer between 1 and 20");
+    return 5;
+  }
+
+  return value;
+}
+
 function normalizeTags(tags: string[] | undefined, issues: string[]): string[] {
   if (tags === undefined) return [];
   if (!Array.isArray(tags)) {
@@ -224,6 +332,18 @@ function normalizeMetadata(
     issues.push("metadata must be JSON-serializable");
     return {};
   }
+}
+
+function buildFtsMatchQuery(query: string, issues: string[]): string | undefined {
+  const tokens = query.match(/[\p{L}\p{N}][\p{L}\p{N}_-]*/gu) ?? [];
+  const normalizedTokens = Array.from(new Set(tokens.map((token) => token.toLowerCase())));
+
+  if (normalizedTokens.length === 0) {
+    issues.push("query must contain searchable terms");
+    return undefined;
+  }
+
+  return normalizedTokens.map((token) => `"${token.replaceAll("\"", '""')}"`).join(" AND ");
 }
 
 function isLowInformationSummary(summary: string): boolean {

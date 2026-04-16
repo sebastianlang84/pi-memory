@@ -5,7 +5,10 @@ import { DatabaseSync } from "node:sqlite";
 import {
   type CreateMemoryInput,
   type MemoryRecord,
+  type MemorySearchResult,
+  type SearchMemoriesInput,
   normalizeCreateMemoryInput,
+  normalizeSearchMemoriesInput,
 } from "./memories.ts";
 import { LATEST_MEMORY_SCHEMA_VERSION, memoryMigrations } from "./migrations.ts";
 
@@ -22,6 +25,7 @@ export interface MemoryStoreStatus {
 export interface MemoryStore extends MemoryStoreStatus {
   createMemory(input: CreateMemoryInput): MemoryRecord;
   getMemory(id: string): MemoryRecord | null;
+  searchMemories(input: SearchMemoriesInput): MemorySearchResult[];
   close(): void;
 }
 
@@ -47,6 +51,22 @@ interface MemoryRow {
   last_accessed_at: string | null;
   expires_at: string | null;
   metadata_json: string;
+}
+
+interface MemorySearchRow {
+  id: string;
+  kind: MemoryRecord["kind"];
+  scope: MemoryRecord["scope"];
+  title: string;
+  summary: string;
+  tags_json: string;
+  project_id: string | null;
+  repo_path: string | null;
+  importance: number;
+  confidence: number;
+  created_at: string;
+  updated_at: string;
+  match_score: number;
 }
 
 export function initializeMemoryStore(input: InitializeMemoryStoreInput): MemoryStore {
@@ -132,6 +152,82 @@ export function initializeMemoryStore(input: InitializeMemoryStoreInput): Memory
         if (normalizedId.length === 0) return null;
 
         return readMemoryById(db, normalizedId);
+      },
+      searchMemories(input) {
+        assertStoreOpen(isClosed);
+
+        const normalizedInput = normalizeSearchMemoriesInput(input);
+        const filters = ["m.status = 'active'", "memory_fts MATCH ?"];
+        const params: Array<string | number> = [normalizedInput.matchQuery];
+
+        if (normalizedInput.kind && normalizedInput.kind.length > 0) {
+          filters.push(`m.kind IN (${createPlaceholders(normalizedInput.kind.length)})`);
+          params.push(...normalizedInput.kind);
+        }
+
+        if (normalizedInput.scope && normalizedInput.scope.length > 0) {
+          filters.push(`m.scope IN (${createPlaceholders(normalizedInput.scope.length)})`);
+          params.push(...normalizedInput.scope);
+        }
+
+        if (normalizedInput.projectId) {
+          filters.push("m.project_id = ?");
+          params.push(normalizedInput.projectId);
+        }
+
+        if (normalizedInput.repoPath) {
+          filters.push("m.repo_path = ?");
+          params.push(normalizedInput.repoPath);
+        }
+
+        if (normalizedInput.tags.length > 0) {
+          filters.push(
+            `EXISTS (SELECT 1 FROM json_each(m.tags_json) AS tag WHERE tag.value IN (${createPlaceholders(normalizedInput.tags.length)}))`,
+          );
+          params.push(...normalizedInput.tags);
+        }
+
+        params.push(normalizedInput.limit);
+
+        const rows = db
+          .prepare(`
+            SELECT
+              m.id,
+              m.kind,
+              m.scope,
+              m.title,
+              m.summary,
+              m.tags_json,
+              m.project_id,
+              m.repo_path,
+              m.importance,
+              m.confidence,
+              m.created_at,
+              m.updated_at,
+              bm25(memory_fts, 10.0, 5.0, 1.0, 1.0) AS match_score
+            FROM memory_fts
+            JOIN memories AS m ON m.rowid = memory_fts.rowid
+            WHERE ${filters.join(" AND ")}
+            ORDER BY match_score ASC, m.importance DESC, m.confidence DESC, m.updated_at DESC
+            LIMIT ?;
+          `)
+          .all(...params) as MemorySearchRow[];
+
+        return rows.map((row) => ({
+          id: row.id,
+          kind: row.kind,
+          scope: row.scope,
+          title: row.title,
+          summary: row.summary,
+          tags: parseStringArray(row.tags_json),
+          projectId: row.project_id ?? undefined,
+          repoPath: row.repo_path ?? undefined,
+          importance: row.importance,
+          confidence: row.confidence,
+          createdAt: row.created_at,
+          updatedAt: row.updated_at,
+          matchScore: row.match_score,
+        }));
       },
       close() {
         if (isClosed) return;
@@ -254,6 +350,10 @@ function parseObject(value: string): Record<string, unknown> {
   } catch {
     return {};
   }
+}
+
+function createPlaceholders(count: number): string {
+  return Array.from({ length: count }, () => "?").join(", ");
 }
 
 function assertStoreOpen(isClosed: boolean): void {

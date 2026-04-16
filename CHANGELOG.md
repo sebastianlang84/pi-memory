@@ -25,10 +25,13 @@ This changelog follows the Keep a Changelog format.
 - A first `memory_save` implementation in the local core with validation, normalization, low-information rejection, and persisted readback.
 - Pi extension registration for the `memory_save` tool.
 - Core tests covering valid create, invalid create, and persisted readback.
+- A first lexical retrieval path using SQLite FTS5 plus metadata filters in the local core.
+- Pi extension registration for the `memory_search` tool with compact result formatting.
+- Core tests covering exact-term retrieval, kind/scope filtering, and result limits.
 
 ### Changed
 - Expanded the root `README.md` from a placeholder to a navigable project guide.
-- Updated `README.md` with the current extension/core structure, test entry points, and v0.3 implementation status.
+- Updated `README.md` with the current extension/core structure, test entry points, and v0.4 implementation status.
 
 ### Fixed
 - None.
