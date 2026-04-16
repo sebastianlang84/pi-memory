@@ -31,7 +31,7 @@ Navigation: `AGENTS.md` (rules and routing), `MEMORY.md` (current state), `TODO.
 - `CHANGELOG.md` - user/operator-visible changes.
 - `package.json` - repo scripts, including the current extension smoke run.
 - `.pi/extensions/pi-memory/index.ts` - project-local Pi extension entry point.
-- `src/core/` - thin local core boundary, including SQLite store initialization, schema migrations, validated memory persistence, and lexical FTS5 retrieval.
+- `src/core/` - thin local core boundary, including SQLite store initialization, schema migrations, validated memory persistence, lexical FTS5 retrieval, and embedding generation/storage behind a narrow adapter.
 - `src/pi-extension/` - Pi-facing extension layer.
 - `test/core/` - core integration tests.
 - `docs/` - PRD, ADRs, plans, runbooks, policies, audits, and archive material.
@@ -45,7 +45,7 @@ Navigation: `AGENTS.md` (rules and routing), `MEMORY.md` (current state), `TODO.
 5. Add ADRs, plans, or implementation docs under `docs/` as decisions harden.
 
 ## Current dev checks
-- Run `npm test` to verify fresh-DB initialization, validated memory creation, lexical retrieval, and persisted readback.
+- Run `npm test` to verify fresh-DB initialization, validated memory creation, lexical retrieval, embedding persistence, adapter injection, and persisted readback.
 - Run `npm run smoke:memory-status` to load the extension and invoke `/memory-status` in print mode.
 
 ## Status
@@ -55,6 +55,7 @@ Navigation: `AGENTS.md` (rules and routing), `MEMORY.md` (current state), `TODO.
 - v0.2 SQLite store initialization and schema v1 migration are implemented.
 - v0.3 validated `memory_save` persistence is implemented in the local core and exposed through the Pi extension.
 - v0.4 lexical retrieval is implemented via SQLite FTS5 with metadata filters and exposed through the Pi extension as `memory_search`.
+- v0.5 embedding generation/storage is implemented behind a narrow adapter with deterministic built-in default and low-footprint profiles.
 
 ## License
 See `LICENSE`.

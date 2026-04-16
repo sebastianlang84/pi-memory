@@ -7,7 +7,7 @@ import { DatabaseSync } from "node:sqlite";
 
 import { initializeMemoryStore } from "../../src/core/index.ts";
 
-test("initializeMemoryStore creates a fresh database and applies schema v2", () => {
+test("initializeMemoryStore creates a fresh database and applies schema v3", () => {
   const tempRoot = mkdtempSync(join(tmpdir(), "pi-memory-store-"));
   const dbPath = join(tempRoot, "memory.sqlite");
 
@@ -16,24 +16,28 @@ test("initializeMemoryStore creates a fresh database and applies schema v2", () 
 
   assert.equal(existsSync(dbPath), true);
   assert.equal(store.dbPath, dbPath);
-  assert.equal(store.schemaVersion, 2);
-  assert.equal(store.latestSchemaVersion, 2);
+  assert.equal(store.schemaVersion, 3);
+  assert.equal(store.latestSchemaVersion, 3);
+  assert.equal(store.embeddingModel, "builtin-hash-384-v1");
+  assert.equal(store.fallbackEmbeddingModel, "builtin-hash-64-v1");
+  assert.equal(store.embeddingDimensions, 384);
+  assert.equal(store.embeddingStrategy, "deterministic-hash");
 
   const db = new DatabaseSync(dbPath);
 
   try {
     const schemaVersion = db.prepare("PRAGMA user_version;").get() as { user_version: number };
-    assert.equal(schemaVersion.user_version, 2);
+    assert.equal(schemaVersion.user_version, 3);
 
     const coreTables = db
       .prepare(
-        `SELECT name FROM sqlite_master WHERE type = 'table' AND name IN ('artifacts', 'links', 'memories', 'sessions') ORDER BY name;`,
+        `SELECT name FROM sqlite_master WHERE type = 'table' AND name IN ('artifacts', 'links', 'memories', 'memory_embeddings', 'sessions') ORDER BY name;`,
       )
       .all() as Array<{ name: string }>;
 
     assert.deepEqual(
       coreTables.map((table) => table.name),
-      ["artifacts", "links", "memories", "sessions"],
+      ["artifacts", "links", "memories", "memory_embeddings", "sessions"],
     );
 
     const ftsTable = db
@@ -79,6 +83,12 @@ test("initializeMemoryStore creates a fresh database and applies schema v2", () 
         "metadata_json",
       ],
     );
+
+    const embeddingColumns = db.prepare("PRAGMA table_info(memory_embeddings);").all() as Array<{ name: string }>;
+    assert.deepEqual(
+      embeddingColumns.map((column) => column.name),
+      ["memory_id", "model", "dimensions", "vector_json", "content_hash", "created_at", "updated_at"],
+    );
   } finally {
     db.close();
   }
@@ -91,11 +101,13 @@ test("initializeMemoryStore is idempotent for an already-migrated database", () 
   const firstStore = initializeMemoryStore({ dbPath });
   firstStore.close();
 
-  const secondStore = initializeMemoryStore({ dbPath });
+  const secondStore = initializeMemoryStore({ dbPath, preferLowFootprintEmbeddings: true });
 
   try {
-    assert.equal(secondStore.schemaVersion, 2);
-    assert.equal(secondStore.latestSchemaVersion, 2);
+    assert.equal(secondStore.schemaVersion, 3);
+    assert.equal(secondStore.latestSchemaVersion, 3);
+    assert.equal(secondStore.embeddingModel, "builtin-hash-64-v1");
+    assert.equal(secondStore.embeddingDimensions, 64);
   } finally {
     secondStore.close();
   }

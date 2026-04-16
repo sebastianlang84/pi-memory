@@ -28,10 +28,14 @@ This changelog follows the Keep a Changelog format.
 - A first lexical retrieval path using SQLite FTS5 plus metadata filters in the local core.
 - Pi extension registration for the `memory_search` tool with compact result formatting.
 - Core tests covering exact-term retrieval, kind/scope filtering, and result limits.
+- A narrow embedding adapter in the local core with deterministic built-in profiles for default and low-footprint operation.
+- SQLite schema v3 support for persisted memory embeddings in a dedicated `memory_embeddings` table.
+- Core tests covering deterministic embedding persistence, adapter injection, and low-footprint embedding profile selection.
+- ADR 001 documenting the v0.5 deterministic embedding baseline and fallback path.
 
 ### Changed
 - Expanded the root `README.md` from a placeholder to a navigable project guide.
-- Updated `README.md` with the current extension/core structure, test entry points, and v0.4 implementation status.
+- Updated `README.md` with the current extension/core structure, test entry points, and v0.5 implementation status.
 
 ### Fixed
 - None.

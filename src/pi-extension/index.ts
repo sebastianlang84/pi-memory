@@ -22,7 +22,7 @@ export default function registerPiMemoryExtension(pi: ExtensionAPI) {
 
   pi.on("session_start", async (_event, ctx) => {
     if (!ctx.hasUI) return;
-    ctx.ui.setStatus("pi-memory", "pi-memory v0.4 ready — /memory-status, memory_search, memory_save");
+    ctx.ui.setStatus("pi-memory", "pi-memory v0.5 ready — /memory-status, memory_search, memory_save");
   });
 
   pi.on("session_shutdown", async () => {
@@ -95,7 +95,7 @@ export default function registerPiMemoryExtension(pi: ExtensionAPI) {
       });
 
       return {
-        content: [{ type: "text", text: formatMemorySaved(memory, activeStore.dbPath) }],
+        content: [{ type: "text", text: formatMemorySaved(memory, activeStore) }],
         details: {
           dbPath: activeStore.dbPath,
           memory,
@@ -136,7 +136,7 @@ function getStoreForCwd(
   return core.initializeStore({ dbPath });
 }
 
-function formatMemorySaved(memory: MemoryRecord, dbPath: string): string {
+function formatMemorySaved(memory: MemoryRecord, store: MemoryStore): string {
   return [
     `Saved memory ${memory.id}.`,
     `kind: ${memory.kind}`,
@@ -144,7 +144,9 @@ function formatMemorySaved(memory: MemoryRecord, dbPath: string): string {
     `title: ${memory.title}`,
     `summary: ${memory.summary}`,
     `tags: ${memory.tags.join(", ") || "none"}`,
-    `db_path: ${dbPath}`,
+    `embedding_model: ${store.embeddingModel}`,
+    `embedding_dimensions: ${store.embeddingDimensions}`,
+    `db_path: ${store.dbPath}`,
   ].join("\n");
 }
 

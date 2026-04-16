@@ -110,6 +110,24 @@ export const memoryMigrations: MemoryMigration[] = [
       END;
     `,
   },
+  {
+    version: 3,
+    name: "memory_embeddings",
+    sql: `
+      CREATE TABLE memory_embeddings (
+        memory_id TEXT PRIMARY KEY REFERENCES memories(id) ON DELETE CASCADE,
+        model TEXT NOT NULL,
+        dimensions INTEGER NOT NULL CHECK (dimensions > 0),
+        vector_json TEXT NOT NULL,
+        content_hash TEXT NOT NULL,
+        created_at TEXT NOT NULL,
+        updated_at TEXT NOT NULL
+      );
+
+      CREATE INDEX idx_memory_embeddings_model ON memory_embeddings(model);
+      CREATE INDEX idx_memory_embeddings_content_hash ON memory_embeddings(content_hash);
+    `,
+  },
 ];
 
 export const LATEST_MEMORY_SCHEMA_VERSION = memoryMigrations.at(-1)?.version ?? 0;

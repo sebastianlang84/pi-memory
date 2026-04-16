@@ -344,7 +344,6 @@ That keeps V1 easy to run while preserving a later extraction path.
 ## 13. Open Decisions Still Needing ADRs
 
 - exact SQLite schema and migration format
-- exact embedding model default and fallback
 - final hybrid ranking formula
 - exact DB location and project partitioning strategy
 - whether session summaries are one memory or multiple linked memories

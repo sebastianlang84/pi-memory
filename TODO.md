@@ -14,12 +14,6 @@ Rule: Completed items are removed, not checked off.
 
 Each step should land as a small, reviewable, testable commit. `v1.0` is explicitly feature-free: only final review, fixes, cleanup, and release closeout.
 
-### v0.5
-- Add embedding generation behind a narrow adapter.
-- Store embeddings for saved memories.
-- Choose and wire the default model plus fallback path for weaker machines.
-- Add tests that verify embedding generation/storage behind a mocked or deterministic adapter.
-
 ### v0.6
 - Implement hybrid retrieval: FTS + vector search + application-layer ranking.
 - Add first-pass ranking inputs such as scope match, recency, importance, and confidence.
