@@ -31,6 +31,7 @@ export interface SearchMemoriesInput {
   kind?: MemoryKind[];
   scope?: MemoryScope[];
   tags?: string[];
+  sessionId?: string;
   projectId?: string;
   repoPath?: string;
   limit?: number;
@@ -42,6 +43,7 @@ export interface NormalizedSearchMemoriesInput {
   kind?: MemoryKind[];
   scope?: MemoryScope[];
   tags: string[];
+  sessionId?: string;
   projectId?: string;
   repoPath?: string;
   limit: number;
@@ -162,6 +164,7 @@ export function normalizeSearchMemoriesInput(input: SearchMemoriesInput): Normal
   const kind = normalizeEnumList("kind", input.kind, MEMORY_KINDS, issues);
   const scope = normalizeEnumList("scope", input.scope, MEMORY_SCOPES, issues);
   const tags = normalizeTags(input.tags, issues);
+  const sessionId = normalizeOptionalText(input.sessionId);
   const projectId = normalizeOptionalText(input.projectId);
   const repoPath = normalizeOptionalText(input.repoPath);
   const limit = normalizeLimit(input.limit, issues);
@@ -177,6 +180,7 @@ export function normalizeSearchMemoriesInput(input: SearchMemoriesInput): Normal
     kind,
     scope,
     tags,
+    sessionId,
     projectId,
     repoPath,
     limit,

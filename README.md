@@ -32,8 +32,9 @@ Navigation: `AGENTS.md` (rules and routing), `MEMORY.md` (current state), `TODO.
 - `package.json` - repo scripts, including the current extension smoke run.
 - `.pi/extensions/pi-memory/index.ts` - project-local Pi extension entry point.
 - `src/core/` - thin local core boundary, including SQLite store initialization, schema migrations, validated memory persistence, hybrid lexical/vector retrieval with application-layer ranking and dedupe, and embedding generation/storage behind a narrow adapter.
-- `src/pi-extension/` - Pi-facing extension layer.
+- `src/pi-extension/` - Pi-facing extension layer, including the `before_agent_start` retrieval hook and compact memory-context injection helpers.
 - `test/core/` - core integration tests.
+- `test/pi-extension/` - extension-focused tests for context mapping and compact turn injection.
 - `docs/` - PRD, ADRs, plans, runbooks, policies, audits, and archive material.
 - `.agents/skills/` - optional repo-local skills.
 
@@ -45,7 +46,7 @@ Navigation: `AGENTS.md` (rules and routing), `MEMORY.md` (current state), `TODO.
 5. Add ADRs, plans, or implementation docs under `docs/` as decisions harden.
 
 ## Current dev checks
-- Run `npm test` to verify fresh-DB initialization, validated memory creation, lexical retrieval, hybrid retrieval/ranking, embedding persistence, adapter injection, and persisted readback.
+- Run `npm test` to verify fresh-DB initialization, validated memory creation, lexical retrieval, hybrid retrieval/ranking, session-scoped filtering, embedding persistence, adapter injection, persisted readback, and compact retrieval-hook injection behavior.
 - Run `npm run smoke:memory-status` to load the extension and invoke `/memory-status` in print mode.
 
 ## Status
@@ -57,6 +58,7 @@ Navigation: `AGENTS.md` (rules and routing), `MEMORY.md` (current state), `TODO.
 - v0.4 lexical retrieval is implemented via SQLite FTS5 with metadata filters and exposed through the Pi extension as `memory_search`.
 - v0.5 embedding generation/storage is implemented behind a narrow adapter with deterministic built-in default and low-footprint profiles.
 - v0.6 hybrid retrieval is implemented by merging lexical FTS and vector candidates, reranking them in application code, and suppressing near-duplicate matches.
+- v0.7 turn-start retrieval is implemented via a `before_agent_start` hook that derives session/project/repo context, injects a compact top-N memory block, and auto-enriches saved scoped memories with runtime context.
 
 ## License
 See `LICENSE`.

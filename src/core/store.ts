@@ -180,6 +180,10 @@ export function initializeMemoryStore(input: InitializeMemoryStoreInput): Memory
         db.exec("BEGIN IMMEDIATE;");
 
         try {
+          if (memory.sessionId) {
+            ensureSessionRow(db, memory);
+          }
+
           db.prepare(`
             INSERT INTO memories (
               id,
@@ -363,6 +367,25 @@ function readMemoryEmbeddingById(db: DatabaseSync, id: string): MemoryEmbeddingR
   return row ? mapMemoryEmbeddingRow(row) : null;
 }
 
+function ensureSessionRow(db: DatabaseSync, memory: Pick<MemoryRecord, "sessionId" | "projectId" | "repoPath" | "branch" | "createdAt">): void {
+  if (!memory.sessionId) return;
+
+  db.prepare(`
+    INSERT INTO sessions (
+      id,
+      project_id,
+      repo_path,
+      branch,
+      started_at,
+      metadata_json
+    ) VALUES (?, ?, ?, ?, ?, '{}')
+    ON CONFLICT(id) DO UPDATE SET
+      project_id = COALESCE(sessions.project_id, excluded.project_id),
+      repo_path = COALESCE(sessions.repo_path, excluded.repo_path),
+      branch = COALESCE(sessions.branch, excluded.branch);
+  `).run(memory.sessionId, memory.projectId ?? null, memory.repoPath ?? null, memory.branch ?? null, memory.createdAt);
+}
+
 function writeMemoryEmbedding(
   db: DatabaseSync,
   memoryId: string,
@@ -483,6 +506,11 @@ function buildMemorySearchFilters(
   if (input.scope && input.scope.length > 0) {
     clauses.push(`${alias}.scope IN (${createPlaceholders(input.scope.length)})`);
     params.push(...input.scope);
+  }
+
+  if (input.sessionId) {
+    clauses.push(`${alias}.session_id = ?`);
+    params.push(input.sessionId);
   }
 
   if (input.projectId) {

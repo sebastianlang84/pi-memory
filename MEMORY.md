@@ -22,8 +22,10 @@ scope: always-loaded bootstrap; keep lean
 - v0.5 now adds embedding generation/storage behind a narrow adapter: schema v3 persists embeddings in `memory_embeddings`, the store supports injected adapters, and the built-in deterministic profiles are `builtin-hash-384-v1` (default) and `builtin-hash-64-v1` (low-footprint fallback).
 - v0.6 now implements hybrid retrieval in the local core: lexical FTS candidates and vector candidates are merged and reranked in application code using lexical/semantic match, scope/context, recency, importance, and confidence.
 - v0.6 also adds basic near-duplicate suppression for search results and ranking-focused hybrid retrieval tests, including mixed German/English semantic cases via a mock embedding adapter.
+- v0.7 now implements the Pi `before_agent_start` retrieval hook: the extension derives session/project/repo context from the active Pi session, runs staged retrieval, and injects a compact top-N memory block into the turn.
+- v0.7 also auto-enriches `memory_save` writes for scoped memories with runtime project/repo/session context, and the core now supports session-aware filtering plus automatic `sessions` row creation when session-scoped memories are persisted.
 - ADR 001 records the v0.5 embedding baseline decision.
-- Verification paths now exist via `npm test` for fresh DB, migration, save-validation, persisted-readback, lexical retrieval, hybrid retrieval/ranking, and embedding persistence checks, plus `npm run smoke:memory-status` for the extension smoke run.
+- Verification paths now exist via `npm test` for fresh DB, migration, save-validation, persisted-readback, lexical retrieval, session-filtered retrieval, hybrid retrieval/ranking, embedding persistence, and retrieval-hook injection checks, plus `npm run smoke:memory-status` for the extension smoke run.
 - Current V1 direction from the PRD and plan: local-first, single-user, SQLite-based, hybrid retrieval, Pi-first extension surface, thin local core boundary, no heavy server infrastructure.
 
 ## 2) Long-Term Memory
@@ -41,13 +43,14 @@ scope: always-loaded bootstrap; keep lean
 - 2026-04-16 — Implemented v0.4 lexical retrieval with schema v2 FTS5 indexing, metadata filters, compact `memory_search` results, and retrieval-focused tests.
 - 2026-04-16 — Implemented v0.5 embedding generation/storage with schema v3, a narrow adapter boundary, deterministic built-in default/fallback profiles, and adapter-focused tests.
 - 2026-04-16 — Implemented v0.6 hybrid retrieval with lexical/vector candidate merging, application-layer ranking inputs, basic dedupe, Pi result formatting updates, and multilingual ranking-focused tests.
+- 2026-04-16 — Implemented v0.7 turn-start retrieval with Pi `before_agent_start` injection, scope-aware runtime context mapping/enrichment, session-aware filtering, and compact injection-focused tests.
 
 ## 4) Open Decisions
 - Whether V1 should ship as a pure local library or as a small localhost service.
 - How much memory creation should be manual vs assisted in V1.
 
 ## 5) Next Steps
-1. Implement v0.7: the Pi `before_agent_start` retrieval hook with context-derived filters and compact turn injection.
+1. Implement v0.8: `memory_update`, `memory_link`, `memory_archive`, and `/memory-search`.
 2. Refine the schema details as needed while retrieval and update flows become concrete.
 3. Define write policy and Pi integration boundary further as more tools land.
 4. Keep the runtime-boundary decision explicit as an ADR if later evidence pushes beyond the current in-process extension plan.

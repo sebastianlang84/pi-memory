@@ -12,6 +12,12 @@ import {
   type MemorySearchResult,
   type MemoryStore,
 } from "../core/index.ts";
+import {
+  buildTurnMemoryMessage,
+  decorateCreateMemoryInput,
+  deriveMemoryTurnContext,
+  retrieveMemoriesForTurn,
+} from "./retrieval.ts";
 import { formatMemoryStatus, formatStatusWidgetLines } from "./status.ts";
 
 const DEFAULT_DB_FILE = [".pi", "pi-memory.sqlite"] as const;
@@ -22,7 +28,22 @@ export default function registerPiMemoryExtension(pi: ExtensionAPI) {
 
   pi.on("session_start", async (_event, ctx) => {
     if (!ctx.hasUI) return;
-    ctx.ui.setStatus("pi-memory", "pi-memory v0.6 ready — /memory-status, memory_search, memory_save");
+    ctx.ui.setStatus("pi-memory", "pi-memory v0.7 ready — retrieval hook, /memory-status, memory_search, memory_save");
+  });
+
+  pi.on("before_agent_start", async (event, ctx) => {
+    const activeStore = getStoreForCwd(core, store, ctx.cwd);
+    store = activeStore;
+
+    const turnContext = deriveMemoryTurnContext(ctx.cwd, ctx.sessionManager.getSessionId());
+    const { results, searchPlan } = retrieveMemoriesForTurn(activeStore, event.prompt, turnContext);
+    const message = buildTurnMemoryMessage(event.prompt, results, turnContext, activeStore.dbPath, searchPlan);
+
+    if (!message) {
+      return;
+    }
+
+    return { message };
   });
 
   pi.on("session_shutdown", async () => {
@@ -89,8 +110,9 @@ export default function registerPiMemoryExtension(pi: ExtensionAPI) {
       const activeStore = getStoreForCwd(core, store, ctx.cwd);
       store = activeStore;
 
+      const turnContext = deriveMemoryTurnContext(ctx.cwd, ctx.sessionManager.getSessionId());
       const memory = activeStore.createMemory({
-        ...params,
+        ...decorateCreateMemoryInput(params, turnContext),
         sourceAgent: "pi",
       });
 
@@ -137,17 +159,34 @@ function getStoreForCwd(
 }
 
 function formatMemorySaved(memory: MemoryRecord, store: MemoryStore): string {
-  return [
+  const lines = [
     `Saved memory ${memory.id}.`,
     `kind: ${memory.kind}`,
     `scope: ${memory.scope}`,
     `title: ${memory.title}`,
     `summary: ${memory.summary}`,
     `tags: ${memory.tags.join(", ") || "none"}`,
+  ];
+
+  if (memory.sessionId) {
+    lines.push(`session_id: ${memory.sessionId}`);
+  }
+
+  if (memory.projectId) {
+    lines.push(`project_id: ${memory.projectId}`);
+  }
+
+  if (memory.repoPath) {
+    lines.push(`repo_path: ${memory.repoPath}`);
+  }
+
+  lines.push(
     `embedding_model: ${store.embeddingModel}`,
     `embedding_dimensions: ${store.embeddingDimensions}`,
     `db_path: ${store.dbPath}`,
-  ].join("\n");
+  );
+
+  return lines.join("\n");
 }
 
 function formatMemorySearchResults(query: string, results: MemorySearchResult[], dbPath: string): string {

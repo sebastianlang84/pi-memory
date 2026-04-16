@@ -87,15 +87,52 @@ test("searchMemories applies kind and scope filters", () => {
   }
 });
 
+test("searchMemories filters session-scoped results by sessionId", () => {
+  const dbPath = createTempDbPath();
+  const store = initializeMemoryStore({ dbPath });
+
+  try {
+    store.createMemory({
+      kind: "todo",
+      scope: "session",
+      sessionId: "session-a",
+      title: "Session A note",
+      summary: "Sessionneedle note that should only appear for the matching active session.",
+      tags: ["session"],
+    });
+
+    store.createMemory({
+      kind: "todo",
+      scope: "session",
+      sessionId: "session-b",
+      title: "Session B note",
+      summary: "Sessionneedle note that belongs to another session.",
+      tags: ["session"],
+    });
+
+    const results = store.searchMemories({
+      query: "sessionneedle",
+      scope: ["session"],
+      sessionId: "session-a",
+    });
+
+    assert.equal(results.length, 1);
+    assert.equal(results[0]?.title, "Session A note");
+  } finally {
+    store.close();
+  }
+});
+
 test("searchMemories respects result limits", () => {
   const dbPath = createTempDbPath();
   const store = initializeMemoryStore({ dbPath });
 
   try {
-    for (const title of ["First limit result", "Second limit result", "Third limit result"]) {
+    for (const [index, title] of ["First limit result", "Second limit result", "Third limit result"].entries()) {
       store.createMemory({
         kind: "todo",
         scope: "session",
+        sessionId: `limit-session-${index + 1}`,
         title,
         summary: `Limitneedle retrieval test keeps ${title.toLowerCase()} in the lexical result set.`,
         tags: ["limit"],

@@ -36,11 +36,16 @@ This changelog follows the Keep a Changelog format.
 - Ranking inputs for `memory_search`, including lexical strength, semantic similarity, scope/context, recency, importance, and confidence.
 - Basic near-duplicate suppression in hybrid search results.
 - Hybrid retrieval tests covering vector-only matches, ranking behavior, recency tie-breaking, dedupe, and mixed German/English semantic cases via a mock embedding adapter.
+- A v0.7 `before_agent_start` retrieval hook in the Pi extension that derives session/project/repo context and injects a compact top-N memory block into the turn.
+- Scope-aware runtime enrichment for `memory_save`, so project/repo/session memories inherit current context automatically.
+- Session-aware search filtering in the local core, including automatic session-row creation for persisted session-scoped memories.
+- Extension-focused tests covering context mapping, staged retrieval planning, and compact top-N injection behavior.
 
 ### Changed
 - Expanded the root `README.md` from a placeholder to a navigable project guide.
 - Updated `README.md` with the current extension/core structure, test entry points, and v0.6 implementation status.
-- Updated the Pi extension status/reporting strings to reflect v0.6 hybrid retrieval readiness and compact lexical/semantic score hints.
+- Updated the Pi extension status/reporting strings to reflect v0.7 retrieval-hook readiness and the next v0.8 implementation slice.
+- Updated `README.md` with the v0.7 retrieval-hook status, extension-test coverage, and current verification paths.
 
 ### Fixed
 - None.

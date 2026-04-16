@@ -14,12 +14,6 @@ Rule: Completed items are removed, not checked off.
 
 Each step should land as a small, reviewable, testable commit. `v1.0` is explicitly feature-free: only final review, fixes, cleanup, and release closeout.
 
-### v0.7
-- Implement the Pi retrieval hook for `before_agent_start`.
-- Map current session/repo/project context into search filters.
-- Inject a compact memory context block into the turn.
-- Add tests proving only a small top-N context is injected.
-
 ### v0.8
 - Implement `memory_update`, `memory_link`, and `memory_archive`.
 - Add `/memory-search` for manual retrieval/debugging.
