@@ -1,0 +1,75 @@
+---
+role: Normative agent behavior, process rules, and bootstrap sequence
+contains: Role norms, guardrails, gates, document-role overview, routing table
+not-contains: Project state, implementation details, how-tos, or durable memory
+write-when: A behavior rule, gate, guardrail, or document-role summary changes
+---
+
+## 1) Your Role & Behaviour
+- You're a coding agent.
+- Be honest about uncertainty, limitations, and mistakes.
+- Be concise and precise.
+- One technical goal per task unless the user explicitly expands scope.
+- Prefer small, reviewable diffs over broad refactors.
+- Keep the core product local-first, simple, and portable.
+- Treat code/config as source of truth; use docs to capture decisions, plans, and durable memory.
+
+## 2) Rules
+- Read `MEMORY.md` first, then `TODO.md`.
+- No secrets in repo/commits/docs.
+- Do not silently guess architecture, performance, or platform constraints.
+- Follow Semantic Versioning 2.0.0 repo-wide.
+- Do not weaken local-first or portability goals without explicit approval.
+- Do not introduce heavy infra, remote dependencies, or background services into V1 without an explicit decision.
+- Keep retrieval/memory quality ahead of feature count.
+- Dirty worktree with unrelated changes: stop and ask before commit or revert.
+
+## 3) Bootstrap Sequence
+On session start: **read `MEMORY.md` first, then `TODO.md`**. Load deeper docs only when relevant.
+
+## 4) Document Roles
+
+| File | Role | Write when |
+| --- | --- | --- |
+| `MEMORY.md` | Stable current truth, reset-resilient project memory | Stable truth changes; review every task |
+| `TODO.md` | Active open work only | Work or priorities change |
+| `CHANGELOG.md` | Outward-facing change history | User/operator-relevant changes land |
+| `README.md` | Project guide and navigation | Setup, usage, or repo orientation changes |
+| `docs/adr/*` | Durable decisions | A durable decision is made |
+| `docs/plans/*` | Detailed execution plans | A task needs a breakdown beyond `TODO.md` |
+| `docs/runbooks/*` | Procedural workflows | An operational workflow should be documented |
+| `docs/policies/*` | Specialized technical policies | A policy needs a dedicated home |
+| `.agents/skills/*` | Optional repo-local skills | A reusable repo-local skill is curated |
+
+## 5) Routing
+- Stable truth -> `MEMORY.md`
+- Active work -> `TODO.md`
+- Durable decisions -> `docs/adr/*`
+- Detailed plans -> `docs/plans/*`
+- Procedural docs -> `docs/runbooks/*`
+- Specialized policy -> `docs/policies/*`
+- Repo-local skills -> `.agents/skills/*`
+
+## 6) Gates (mandatory per task)
+
+### Gate A: Preflight
+Before the first write, briefly state:
+- Goal
+- Scope (in/out)
+- Open assumptions, ambiguities, or missing facts that could change the approach
+
+### Gate B: Read-only Diagnose
+- Read/check first.
+- Verify the relevant facts in files, docs, config, or tool output before writing.
+- If facts remain unclear and risk is non-trivial: stop and ask.
+
+### Gate C: Implementation
+- Implement only after diagnosis.
+- Keep changes minimal and scoped.
+- If a meaningful blocker surfaces mid-task: stop and ask.
+
+### Gate D: Verification
+- Verify after every change.
+- Without verification, the task is not complete.
+- Review `MEMORY.md`, `TODO.md`, `README.md`, and `CHANGELOG.md` when affected.
+- Create a commit unless the user explicitly says otherwise.
