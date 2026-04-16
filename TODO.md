@@ -14,11 +14,6 @@ Rule: Completed items are removed, not checked off.
 
 Each step should land as a small, reviewable, testable commit. `v1.0` is explicitly feature-free: only final review, fixes, cleanup, and release closeout.
 
-### v0.1
-- Bootstrap the package structure for the Pi extension and local core.
-- Add a minimal extension entry point plus `/memory-status` stub.
-- Add a basic smoke test or dev run path proving the extension loads.
-
 ### v0.2
 - Implement SQLite store initialization.
 - Add the first migration mechanism.

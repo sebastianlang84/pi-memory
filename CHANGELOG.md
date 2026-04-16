@@ -18,9 +18,12 @@ This changelog follows the Keep a Changelog format.
 - Documentation folders under `docs/` for ADRs, plans, runbooks, policies, audits, and archive material.
 - Initial PRD for the lightweight local memory system under `docs/prd-lightweight-local-memory-system.md`.
 - Working V1 Pi extension plan under `docs/plans/pi-extension-v1.md`, covering the proposed tools, commands, hooks, and write policy.
+- A v0.1 project-local Pi extension skeleton with a thin local core boundary and a `/memory-status` command stub.
+- A repo smoke-run script via `npm run smoke:memory-status`.
 
 ### Changed
 - Expanded the root `README.md` from a placeholder to a navigable project guide.
+- Updated `README.md` with the current extension/core structure and the v0.1 smoke-test entry point.
 
 ### Fixed
 - None.

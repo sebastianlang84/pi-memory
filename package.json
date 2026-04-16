@@ -1,0 +1,9 @@
+{
+  "name": "pi-memory",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "smoke:memory-status": "pi -e ./.pi/extensions/pi-memory/index.ts -p \"/memory-status\""
+  }
+}

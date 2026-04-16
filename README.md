@@ -29,6 +29,10 @@ Navigation: `AGENTS.md` (rules and routing), `MEMORY.md` (current state), `TODO.
 - `MEMORY.md` - stable current truth for the next session.
 - `TODO.md` - active backlog only.
 - `CHANGELOG.md` - user/operator-visible changes.
+- `package.json` - repo scripts, including the current extension smoke run.
+- `.pi/extensions/pi-memory/index.ts` - project-local Pi extension entry point.
+- `src/core/` - thin local core boundary.
+- `src/pi-extension/` - Pi-facing extension layer.
 - `docs/` - PRD, ADRs, plans, runbooks, policies, audits, and archive material.
 - `.agents/skills/` - optional repo-local skills.
 
@@ -39,10 +43,14 @@ Navigation: `AGENTS.md` (rules and routing), `MEMORY.md` (current state), `TODO.
 4. Read `docs/plans/pi-extension-v1.md` for the current proposed Pi integration surface.
 5. Add ADRs, plans, or implementation docs under `docs/` as decisions harden.
 
+## Current dev smoke test
+- Run `npm run smoke:memory-status` to load the extension and invoke `/memory-status` in print mode.
+
 ## Status
 - Repo bootstrap complete.
 - Product direction documented.
-- Implementation not started yet.
+- v0.1 extension/core skeleton implemented.
+- SQLite, migrations, retrieval, and memory persistence are not implemented yet.
 
 ## License
 See `LICENSE`.
