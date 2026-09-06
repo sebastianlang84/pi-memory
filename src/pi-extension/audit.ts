@@ -78,8 +78,8 @@ export function runMemoryAuditFull(
   };
 
   const memories = store.listAllInternal(internalFilter);
-  const todos = store.listAllInternal({ ...internalFilter, kind: ["todo"] });
-  const handoffs = store.listAllInternal({ ...internalFilter, kind: ["handoff"] });
+  const todos = memories.filter((m) => m.kind === "todo");
+  const handoffs = memories.filter((m) => m.kind === "handoff");
   const notes = memories.filter((m) => !m.kind);
 
   const identityViolations = memories.flatMap((m) => buildIdentityViolationCandidate(m));
